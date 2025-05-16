@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from .database import create_db_and_tables
-from .routers import agendamentos, medicos, pacientes
+from .routers import agendamentos, auth, medicos, pacientes
 
 # ====================================================================================
 # ===== --- Rotas ---                                                          =====
@@ -38,6 +38,7 @@ app = FastAPI(
 app.include_router(pacientes.router)
 app.include_router(agendamentos.router)
 app.include_router(medicos.router)
+app.include_router(auth.router)
 
 
 # --- App Get ---
