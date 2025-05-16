@@ -1,14 +1,14 @@
-fastapi
-uvicorn[standard]
-sqlalchemy
-psycopg2-binary
-python-dotenv
-validate-docbr
+alembic
 black
-isort
+fastapi
 flake8
+isort
+passlib[bcrypt]
 pre-commit
-
-
-
-# alembic # Descomente se/quando adicionar migrações com Alembic
+psycopg2-binary
+pydantic-settings
+python-dotenv
+python-jose[cryptography]
+sqlalchemy
+uvicorn[standard]
+validate-docbr

@@ -1,31 +1,58 @@
-version: '3.8'
+# docker-compose.yml
+
+version: '3.8' # Especifica a versão do formato do Docker Compose
 
 services:
+  # ====================================================================================
+  # ===== --- Serviço da API FastAPI ---                                           =====
+  # ====================================================================================
   api:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: .             # Usa o diretório atual como contexto de build.
+      dockerfile: Dockerfile # Especifica o nome do Dockerfile.
     ports:
-      - "8000:8000"
+      - "8000:8000"        # Mapeia a porta 8000 do contêiner para a 8000 do host.
     volumes:
-      # Monta o diretório './app' local para '/service/app' dentro do contêiner
+      # Monta o diretório local './app' para '/service/app' no contêiner.
+      # Permite hot-reloading e desenvolvimento iterativo sem rebuilds constantes da imagem.
       - ./app:/service/app
-    env_file:
-      - .env
-    depends_on:
-      - db
 
+      # Monta os arquivos/pastas do Alembic locais para dentro do contêiner.
+      # Isso garante que os comandos 'alembic' via 'docker-compose exec' usem
+      # o 'alembic.ini' e os scripts de migração mais recentes do seu host.
+      - ./alembic.ini:/service/alembic.ini
+      - ./alembic:/service/alembic
+
+    env_file:
+      - .env                 # Carrega variáveis de ambiente do arquivo .env na raiz.
+    depends_on:
+      - db                   # Garante que o serviço 'db' inicie antes do serviço 'api'.
+    # O 'command' para iniciar a API já está no CMD do Dockerfile.
+
+  # ====================================================================================
+  # ===== --- Serviço do Banco de Dados PostgreSQL ---                             =====
+  # ====================================================================================
   db:
-    image: postgres:15-alpine
+    image: postgres:15-alpine # Usa uma imagem oficial leve do PostgreSQL.
     volumes:
+      # Monta um volume nomeado para persistir os dados do PostgreSQL
+      # mesmo se o contêiner for parado/removido.
       - postgres_data:/var/lib/postgresql/data/
     environment:
+      # Variáveis de ambiente para configurar o PostgreSQL.
+      # Os valores são interpolados a partir do arquivo .env na raiz do projeto.
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
+      # Mapeia a porta 5432 do contêiner para a 5432 do host.
+      # Permite conectar ao banco de dados a partir de ferramentas na máquina host (ex: DBeaver, pgAdmin).
       - "5432:5432"
-    restart: unless-stopped
+    restart: unless-stopped    # Reinicia o contêiner a menos que seja explicitamente parado.
 
+# ====================================================================================
+# ===== --- Definição de Volumes Nomeados ---                                    =====
+# ====================================================================================
 volumes:
-  postgres_data:
+  postgres_data: # Define o volume nomeado usado pelo serviço 'db'.
+                 # Se não existir, o Docker o criará automaticamente.

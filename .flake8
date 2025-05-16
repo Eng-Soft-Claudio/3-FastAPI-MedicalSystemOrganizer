@@ -1,0 +1,11 @@
+# .flake8
+[flake8]
+max-line-length = 88
+extend-ignore =
+    E203,
+    W503,
+    E266,
+    E402
+# Se quiser ignorar F401 para um arquivo específico (ex: schemas.py):
+# per-file-ignores =
+#    app/schemas.py:F401
