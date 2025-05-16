@@ -4,13 +4,13 @@
 # ===== --- Importações ---                                                      =====
 # ====================================================================================
 
-from typing import List
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from .. import crud, schemas
-from ..dependencies import get_db
+from .. import crud, models, schemas
+from ..dependencies import get_db, require_admin_user, require_secretaria_user
 
 # ====================================================================================
 # ===== --- Configuração do Router ---                                           =====
@@ -30,7 +30,9 @@ router = APIRouter(
 
 @router.post("/", response_model=schemas.Paciente, status_code=status.HTTP_201_CREATED)
 async def criar_novo_paciente(
-    paciente: schemas.PacienteCreate, db: Session = Depends(get_db)
+    paciente: schemas.PacienteCreate,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[models.User, Depends(require_secretaria_user)],
 ):
     """
     Cria um novo paciente no sistema.
@@ -135,7 +137,11 @@ async def atualizar_dados_paciente(
 
 
 @router.delete("/{paciente_id}", response_model=schemas.Paciente)
-async def remover_paciente(paciente_id: int, db: Session = Depends(get_db)):
+async def remover_paciente(
+    paciente_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    current_admin: Annotated[models.User, Depends(require_admin_user)],
+):
     """
     Remove um paciente do sistema.
 

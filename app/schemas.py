@@ -11,7 +11,7 @@ from typing import Annotated, Optional, Type
 from pydantic import BaseModel, Field, field_validator
 from validate_docbr import CNS, CPF
 
-from .enum import UserRole
+from .enums import UserRole
 
 # ====================================================================================
 # ===== --- Funções Validadoras Auxiliares ---                                   =====
@@ -326,6 +326,8 @@ class UserCreate(UserBase):
         int | None,
         Field(default=None, description="ID do Médico se o papel for 'medico'"),
     ] = None
+    is_active: bool = True
+    is_superuser: bool = False
 
 
 class UserUpdate(BaseModel):

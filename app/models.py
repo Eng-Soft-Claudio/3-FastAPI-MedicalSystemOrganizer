@@ -13,7 +13,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import Date as SQLDateType
 
 from .database import Base
-from .enum import UserRole
+from .enums import UserRole
 from .schemas import MedicoBase
 
 # ====================================================================================

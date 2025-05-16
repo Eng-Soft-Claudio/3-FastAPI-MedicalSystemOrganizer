@@ -6,9 +6,12 @@
 
 from typing import List, Optional
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from . import models, schemas
+from .enums import UserRole
+from .security import get_password_hash
 
 # ====================================================================================
 # ===== --- CRUD de Pacientes (Já implementado anteriormente) ---                =====
@@ -96,21 +99,22 @@ def create_paciente(db: Session, paciente: schemas.PacienteCreate) -> models.Pac
     if existing_paciente_cpf:
         raise ValueError(f"Paciente com CPF {paciente.cpf} já existe.")
 
-    if paciente.cns:  # Assumindo que cns está em schemas.PacienteCreate
-        # Precisaria de get_paciente_by_cns
-        # existing_paciente_cns = get_paciente_by_cns(db, cns=paciente.cns)
-        # if existing_paciente_cns:
-        #     raise ValueError(f"Paciente com CNS {paciente.cns} já existe.")
+    if paciente.cns:
         pass
-    endereco_data = paciente.endereco.model_dump()
-    db_endereco = models.Endereco(**endereco_data)
-    paciente_data = paciente.model_dump(exclude={"endereco"})
-    db_paciente = models.Paciente(**paciente_data)
-    db_paciente.endereco = db_endereco
-    db.add(db_paciente)
-    db.commit()
-    db.refresh(db_paciente)
-    return db_paciente
+
+    try:
+        endereco_data = paciente.endereco.model_dump()
+        db_endereco = models.Endereco(**endereco_data)
+        paciente_data = paciente.model_dump(exclude={"endereco"})
+        db_paciente = models.Paciente(**paciente_data)
+        db_paciente.endereco = db_endereco
+        db.add(db_paciente)
+        db.commit()
+        db.refresh(db_paciente)
+        return db_paciente
+    except IntegrityError:
+        db.rollback()
+        raise ValueError("Erro de integridade: CPF ou CNS existente no Banco de Dados.")
 
 
 def update_paciente(
@@ -131,9 +135,7 @@ def update_paciente(
     db_paciente = get_paciente_by_id(db, paciente_id)
     if not db_paciente:
         return None
-
     update_data = paciente_update.model_dump(exclude_unset=True)
-
     for key, value in update_data.items():
         if key == "endereco" and value is not None:
             if db_paciente.endereco:
@@ -143,9 +145,8 @@ def update_paciente(
                         setattr(db_paciente.endereco, end_key, end_value)
             else:
                 db_paciente.endereco = models.Endereco(**value)
-        # Ex: elif key == "telefone" and value is not None:
-        #         setattr(db_paciente, key, value)
-
+        elif key == "telefone" and value is not None:
+            setattr(db_paciente, key, value)
     db.commit()
     db.refresh(db_paciente)
     return db_paciente
@@ -360,3 +361,54 @@ def delete_medico(db: Session, medico_id: int) -> Optional[models.Medico]:
     db.delete(db_medico)
     db.commit()
     return db_medico
+
+
+# ====================================================================================
+# ===== --- CRUD de Usuários ---                                                 =====
+# ====================================================================================
+
+
+def get_user_by_id(db: Session, user_id: int) -> Optional[models.User]:
+    """Busca um usuário pelo seu ID."""
+    return db.query(models.User).filter(models.User.id == user_id).first()
+
+
+def get_user_by_email(db: Session, email: str) -> Optional[models.User]:
+    """Busca um usuário pelo seu endereço de e-mail."""
+    return db.query(models.User).filter(models.User.email == email).first()
+
+
+def create_user(db: Session, user: schemas.UserCreate) -> models.User:
+    """
+    Cria um novo usuário no banco de dados.
+    A senha fornecida é hasheada antes de ser armazenada.
+    O campo is_superuser é definido como True se o role for ADMIN.
+    """
+    hashed_password = get_password_hash(user.password)
+
+    is_superuser_val = True if user.role == UserRole.ADMIN else False
+
+    # Cria a instância do modelo User
+    db_user = models.User(
+        email=user.email,
+        hashed_password=hashed_password,
+        nome_completo=user.nome_completo,
+        role=user.role,
+        is_active=True,
+        is_superuser=is_superuser_val,
+        medico_id=user.medico_id if hasattr(user, "medico_id") else None,
+    )
+
+    try:
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    except IntegrityError:
+        db.rollback()
+        raise ValueError(
+            "Erro de integridade: Email ou medico_id (se único) já pode existir."
+        )
+
+
+# (Adicionar update_user e delete_user futuramente, conforme necessário)
