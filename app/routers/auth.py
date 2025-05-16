@@ -6,7 +6,6 @@
 from datetime import timedelta
 from typing import Annotated
 
-from enums import UserRole
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -14,6 +13,7 @@ from sqlalchemy.orm import Session
 from .. import crud, models, schemas, security
 from ..config import settings
 from ..dependencies import get_db, require_admin_user
+from ..enums import UserRole
 
 # ====================================================================================
 # ===== --- Configuração do Router ---                                           =====
