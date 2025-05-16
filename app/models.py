@@ -14,7 +14,6 @@ from sqlalchemy.types import Date as SQLDateType
 
 from .database import Base
 from .enums import UserRole
-from .schemas import MedicoBase
 
 # ====================================================================================
 # ===== --- Modelos ---                                                          =====
@@ -60,6 +59,22 @@ class Paciente(Base):
     )
 
 
+class Medico(Base):
+    """
+    Modelo da tabela 'medicos'.
+    Armazenaria informações detalhadas sobre os médicos.
+    """
+
+    __tablename__ = "medicos"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    nome: Mapped[str] = mapped_column(String, unique=True, index=True)
+    especialidade: Mapped[str] = mapped_column(String)
+    telefone: Mapped[str] = mapped_column(String)
+    user_account: Mapped[Optional["User"]] = relationship(
+        back_populates="medico_profile"
+    )
+
+
 class Agendamento(Base):
     """
     Modelo da tabela 'agendamentos'.
@@ -79,20 +94,7 @@ class Agendamento(Base):
     paciente_id: Mapped[int] = mapped_column(ForeignKey("pacientes.id"))
     paciente: Mapped[Paciente] = relationship()
     medico_id: Mapped[int] = mapped_column(ForeignKey("medicos.id"))
-    medico: Mapped[MedicoBase] = relationship()
-
-
-class Medico(Base):
-    """
-    Modelo da tabela 'medicos'.
-    Armazenaria informações detalhadas sobre os médicos.
-    """
-
-    __tablename__ = "medicos"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    nome: Mapped[str] = mapped_column(String, unique=True, index=True)
-    especialidade: Mapped[str] = mapped_column(String)
-    telefone: Mapped[str] = mapped_column(String)
+    medico: Mapped[Medico] = relationship()
 
 
 class User(Base):
