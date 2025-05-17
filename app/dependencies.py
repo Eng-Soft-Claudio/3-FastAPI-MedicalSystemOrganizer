@@ -136,3 +136,10 @@ async def require_medico_user(
             detail="Configuração inválida: Usuário sem perfil de médico associado.",
         )
     return current_user
+
+
+async def require_login_ativo(
+    current_user: Annotated[models.User, Depends(get_current_active_user)]
+) -> models.User:
+    """Garante que o usuário está logado e ativo."""
+    return current_user

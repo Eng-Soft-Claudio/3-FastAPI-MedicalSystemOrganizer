@@ -3,13 +3,13 @@
 # ====================================================================================
 # ===== --- Importações ---                                                      =====
 # ====================================================================================
-from typing import List
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from .. import crud, models, schemas
-from ..dependencies import get_db
+from ..dependencies import get_db, require_admin_user, require_login_ativo
 
 # ====================================================================================
 # ===== --- Configuração do Router ---                                           =====
@@ -28,8 +28,10 @@ router = APIRouter(
 
 @router.post("/", response_model=schemas.Medico, status_code=status.HTTP_201_CREATED)
 async def criar_novo_medico(
-    medico: schemas.MedicoCreate, db: Session = Depends(get_db)
-):
+    medico: schemas.MedicoCreate,
+    db: Annotated[Session, Depends(get_db)],
+    _current_admin: Annotated[models.User, Depends(require_admin_user)],
+) -> models.Medico:
     """
     Cria um novo médico no sistema.
 
@@ -47,8 +49,11 @@ async def criar_novo_medico(
 
 @router.get("/", response_model=List[schemas.Medico])
 async def listar_medicos(
-    skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
-):
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[models.User, Depends(require_login_ativo)],
+    skip: int = 0,
+    limit: int = 100,
+) -> List[models.Medico]:
     """
     Retorna uma lista de todos os médicos cadastrados no sistema.
     Suporta paginação.
@@ -58,7 +63,11 @@ async def listar_medicos(
 
 
 @router.get("/{medico_id}", response_model=schemas.Medico)
-async def obter_medico_por_id(medico_id: int, db: Session = Depends(get_db)):
+async def obter_medico_por_id(
+    medico_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[models.User, Depends(require_login_ativo)],
+) -> models.Medico:
     """
     Obtém os detalhes de um médico específico pelo seu ID.
     """
@@ -74,7 +83,8 @@ async def obter_medico_por_id(medico_id: int, db: Session = Depends(get_db)):
 async def atualizar_dados_medico(
     medico_id: int,
     medico_update: schemas.MedicoUpdate,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
+    _current_admin: Annotated[models.User, Depends(require_admin_user)],
 ) -> models.Medico:
     """
     Atualiza os dados de um médico existente.
@@ -99,7 +109,11 @@ async def atualizar_dados_medico(
 
 
 @router.delete("/{medico_id}", response_model=schemas.Medico)
-async def remover_medico(medico_id: int, db: Session = Depends(get_db)):
+async def remover_medico(
+    medico_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    _current_admin: Annotated[models.User, Depends(require_admin_user)],
+) -> models.Medico:
     """
     Remove um médico do sistema.
 

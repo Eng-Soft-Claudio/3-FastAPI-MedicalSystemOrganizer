@@ -67,12 +67,11 @@ async def login_para_obter_token(
 async def criar_novo_usuario_sistema(
     user_in: schemas.UserCreate,
     db: Annotated[Session, Depends(get_db)],
-    current_admin: models.User = Depends(require_admin_user),
+    _current_admin: models.User = Depends(require_admin_user),
 ) -> models.User:
     """
     Cria um novo usuário no sistema (Admin, Secretária, Médico).
-    **Atenção:** Este endpoint atualmente é aberto. Em um sistema real,
-    restringir o acesso à criação de usuários é crucial (ex: apenas admins).
+    **ACESSO RESTRITO A ADMINISTRADORES.**
     """
     db_user_by_email = crud.get_user_by_email(db, email=user_in.email)
     if db_user_by_email:
