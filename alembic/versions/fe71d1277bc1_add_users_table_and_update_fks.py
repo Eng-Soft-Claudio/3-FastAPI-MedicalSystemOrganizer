@@ -76,8 +76,9 @@ def upgrade() -> None:
     op.create_index(op.f("ix_enderecos_cep"), "enderecos", ["cep"], unique=False)
 
     user_role_enum = postgresql.ENUM(
-        "ADMIN", "SECRETARIA", "MEDICO", name="user_role_enum", create_type=False
+        "ADMIN", "SECRETARIA", "MEDICO", name="user_role_enum"
     )
+    user_role_enum.create(op.get_bind(), checkfirst=True)
 
     op.create_table(
         "users",
@@ -85,7 +86,17 @@ def upgrade() -> None:
         sa.Column("email", sa.VARCHAR(), nullable=False),
         sa.Column("hashed_password", sa.VARCHAR(), nullable=False),
         sa.Column("nome_completo", sa.VARCHAR(), nullable=False),
-        sa.Column("role", user_role_enum, nullable=False),  # type: ignore[arg-type]
+        sa.Column(
+            "role",
+            sa.Enum(
+                "ADMIN",
+                "SECRETARIA",
+                "MEDICO",
+                name="user_role_enum",
+                inherit_schema=True,
+            ),
+            nullable=False,
+        ),
         sa.Column("is_active", sa.BOOLEAN(), nullable=False, server_default=sa.true()),
         sa.Column(
             "is_superuser", sa.BOOLEAN(), nullable=False, server_default=sa.false()
@@ -137,6 +148,11 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_users_email"), table_name="users")
     op.drop_index(op.f("ix_users_id"), table_name="users")
     op.drop_table("users")
+
+    user_role_enum = postgresql.ENUM(
+        "ADMIN", "SECRETARIA", "MEDICO", name="user_role_enum"
+    )
+    user_role_enum.drop(op.get_bind(), checkfirst=True)
 
     op.drop_index(op.f("ix_enderecos_cep"), table_name="enderecos")
     op.drop_index(op.f("ix_enderecos_cidade"), table_name="enderecos")
