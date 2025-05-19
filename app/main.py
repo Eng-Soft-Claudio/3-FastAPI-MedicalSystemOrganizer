@@ -19,18 +19,8 @@ from .routers import agendamentos, auth, medicos, pacientes
 # --- Lifepan ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
-    db_ready = False
-
-    if db_ready:
-        print("Criando tabelas do banco de dados se não existirem.")
-        create_db_and_tables()
-        print("Tabelas verificadas/criadas (via create_db_and_tables).")
-    else:
-        print("AVISO: Não foi possível conectar ao banco de dados.")
-
+    create_db_and_tables()
     yield
-    print("Aplicação encerrando.")
 
 
 # --- App ---
@@ -54,6 +44,4 @@ async def ler_raiz():
     """
     Endpoint raiz da API.
     """
-    return {
-        "mensagem": "Bem-vindo à API de Agendamentos Médicos com PostgreSQL e Docker!"
-    }
+    return {"mensagem": "Bem-vindo à API de Agendamentos Médicos!"}

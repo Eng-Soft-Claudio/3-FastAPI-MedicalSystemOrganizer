@@ -34,7 +34,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # ====================================================================================
 
 
-# Base será usada para criar cada um dos modelos do banco de dados (tabelas)
 class Base(DeclarativeBase):
     """Classe base para todos os modelos ORM SQLAlchemy."""
 
