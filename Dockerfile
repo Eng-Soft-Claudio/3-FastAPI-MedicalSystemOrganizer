@@ -33,11 +33,6 @@ COPY ./alembic /service/alembic
 
 COPY ./app /service/app
 
-COPY entrypoint.sh /service/entrypoint.sh
-RUN chmod +x /service/entrypoint.sh
-
 EXPOSE 8000
-
-ENTRYPOINT ["/service/entrypoint.sh"]
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/service/app", "--reload-exclude", "/service/alembic", "--reload-exclude", "*.pyc", "--reload-exclude", "*__pycache__*"]

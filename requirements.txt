@@ -11,6 +11,5 @@ python-dotenv
 python-jose[cryptography]
 python-multipart
 sqlalchemy
-typer[all]
 uvicorn[standard]
 validate-docbr
