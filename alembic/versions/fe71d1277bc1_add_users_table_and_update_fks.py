@@ -86,17 +86,7 @@ def upgrade() -> None:
         sa.Column("email", sa.VARCHAR(), nullable=False),
         sa.Column("hashed_password", sa.VARCHAR(), nullable=False),
         sa.Column("nome_completo", sa.VARCHAR(), nullable=False),
-        sa.Column(
-            "role",
-            sa.Enum(
-                "ADMIN",
-                "SECRETARIA",
-                "MEDICO",
-                name="user_role_enum",
-                inherit_schema=True,
-            ),
-            nullable=False,
-        ),
+        sa.Column("role", user_role_enum, nullable=False),  # type: ignore[arg-type]
         sa.Column("is_active", sa.BOOLEAN(), nullable=False, server_default=sa.true()),
         sa.Column(
             "is_superuser", sa.BOOLEAN(), nullable=False, server_default=sa.false()
